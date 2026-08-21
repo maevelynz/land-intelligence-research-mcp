@@ -14,6 +14,11 @@
 │   ├── MANIFEST.json
 │   └── CHECKSUMS.sha256
 ├── docs/
+│   ├── assets/
+│   │   ├── optionality_distribution.png
+│   │   ├── county_comparison.png
+│   │   ├── score_anatomy.png
+│   │   └── decile_validation.png
 │   ├── AGENT_EVALUATION.md
 │   ├── ARCHITECTURE.md
 │   ├── CODE_WALKTHROUGH.md
@@ -27,6 +32,7 @@
 │   └── REVIEW_CHECKLIST.md
 ├── scripts/
 │   ├── generate_dummy_data.py
+│   ├── generate_visualizations.py
 │   ├── preflight.py
 │   ├── register_claude.sh
 │   ├── run_mcp_dev.sh

@@ -18,21 +18,21 @@ A common failure mode in AI analytics is allowing the language model to become t
 
 This project takes a different approach:
 
-```text
-LLM / research agent
-        |
-        | reasoning, question framing, synthesis
-        v
-Model Context Protocol
-        |
-        | governed tool surface
-        v
-DuckDB analytical layer
-        |
-        | joins, scoring, aggregation, validation
-        v
-deterministic synthetic land data
+```mermaid
+flowchart TD
+    Q["Research question"] --> S["LLM selects an MCP tool"]
+    subgraph DET["Deterministic system — Python + DuckDB (server.py)"]
+        direction TB
+        V["Validated structured arguments<br/>(MCP typed interface)"] --> D["Governed DuckDB query / scoring<br/>(PARCEL_FEATURE_SQL)"]
+        D --> R["Structured JSON result"]
+    end
+    S --> V
+    R --> I["LLM interprets the result for the user"]
+
+    style DET fill:#eef3fb,stroke:#2a78d6,stroke-width:1px
 ```
+
+Everything inside the shaded box is deterministic, governed, and identical across every conversation. Only tool *selection*, argument phrasing, and result *interpretation* are left to the LLM. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full diagram and [`docs/CODE_WALKTHROUGH.md`](docs/CODE_WALKTHROUGH.md) for exactly where that boundary sits in code.
 
 The LLM is responsible for reasoning. The analytical layer is responsible for quantitative evidence.
 
@@ -56,13 +56,17 @@ A developer may ask which parcels deserve deeper feasibility work and whether fa
 
 ## MCP analytical surface
 
-The server exposes five governed tools:
+The server exposes five governed tools. All four data-bearing tools call the same underlying `parcel_scores()` function, so there is exactly one definition of `optionality_signal` behind every one of them:
 
-- `list_research_questions`
-- `compare_counties`
-- `rank_land_optionality`
-- `explain_parcel_score`
-- `evaluate_optionality_signal`
+| Tool | Inputs | Analytical operation | Output |
+|---|---|---|---|
+| `list_research_questions` | none | returns a static, hand-maintained list | supported research questions + scope note |
+| `compare_counties` | `limit` | groups `parcel_scores()` by county; average signal, count of parcels scoring ≥60 | per-county screening summary |
+| `rank_land_optionality` | `limit`, optional `county_name` | sorts `parcel_scores()` descending, optionally filtered to one county | top-N parcels with score + feature columns |
+| `explain_parcel_score` | `parcel_id` | looks up one row of `parcel_scores()` | that parcel's score, positive features, and constraints |
+| `evaluate_optionality_signal` | none | joins `parcel_scores()` to `development_outcomes`, buckets into deciles with `NTILE(10)` | decile table + top-vs-bottom conversion-rate lift |
+
+See [`docs/CODE_WALKTHROUGH.md`](docs/CODE_WALKTHROUGH.md#the-five-mcp-tools) for the full per-tool detail, including limitations of each.
 
 It also exposes:
 
@@ -93,7 +97,15 @@ The optionality score is a **transparent screening heuristic** that incorporates
 
 The score is intentionally not framed as a valuation or predictive probability.
 
+![Distribution of optionality_signal across all 3,200 synthetic parcels, with mean and median reference lines](docs/assets/optionality_distribution.png)
+
+Each parcel's score is a weighted decomposition of ten features — see the [formula decomposition for a representative parcel](docs/CODE_WALKTHROUGH.md#d--score-anatomy) and the [county-level comparison](docs/CODE_WALKTHROUGH.md#c--county-comparison) in `docs/CODE_WALKTHROUGH.md` for the full breakdowns.
+
 The `evaluate_optionality_signal` tool checks whether the score separates synthetic development outcomes by score decile. This is useful for testing the research workflow, but it is **not evidence of real-world predictive validity**.
+
+![Two-panel decile validation: left panel shows average optionality_signal by decile (deterministic formula output), right panel shows observed_conversion_5yr rate by decile (independent synthetic DGP output)](docs/assets/decile_validation.png)
+
+The two panels above are deliberately plotted separately, not on a shared or dual axis: `optionality_signal` (left) and `observed_conversion_5yr` (right) come from two independent formulas — one deterministic, one a stochastic draw from a separate synthetic data-generating process — and the chart is not meant to imply they are the same quantity. See [why this isn't circular validation](docs/CODE_WALKTHROUGH.md#why-observed_conversion_5yr-is-not-circular-with-optionality_signal) in `docs/CODE_WALKTHROUGH.md`.
 
 ## Local setup
 
