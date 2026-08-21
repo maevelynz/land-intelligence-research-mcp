@@ -526,11 +526,38 @@ does and does not cover.
   appear (guarding against a persistent-database-rebuild pattern being reintroduced). It
   never imports or executes `server.py`, never starts the MCP server, and never calls a
   `@mcp.tool()` function. It catches *pattern regressions* — someone reintroducing a
-  cwd-relative path or a startup database rebuild — but it does not verify that
-  `compare_counties` returns correct numbers, that the MCP stdio handshake succeeds, or
-  that any tool's JSON output matches an expected schema. **There is no test in this
-  repository that actually invokes a tool function and checks its output.** That is a
-  real gap in coverage, not an implied guarantee.
+  cwd-relative path or a startup database rebuild — but nothing about actual tool output;
+  that is now covered by the two files below.
+- **`tests/test_tool_behavior.py` — behavioral tests, direct function calls.** Imports and
+  directly calls all five `@mcp.tool()` functions (`list_research_questions`,
+  `compare_counties`, `rank_land_optionality`, `explain_parcel_score`,
+  `evaluate_optionality_signal`) as plain Python callables against the checked-in
+  synthetic dataset in `data/`. Expected values are computed independently in
+  pandas/numpy directly from the CSVs — deliberately without importing or re-deriving
+  `PARCEL_FEATURE_SQL` — so a regression in the production SQL (a wrong join, a wrong
+  weight, a dropped column) would be caught rather than the test merely confirming the
+  code agrees with itself. These calls go through the plain Python function, not the MCP
+  transport; see the next entry for that boundary.
+- **`tests/test_tool_boundary.py` — a focused subset of the actual MCP `call_tool`
+  boundary.** Goes through `mcp.call_tool(name, arguments)` rather than calling the
+  Python functions directly, to check the parts of the contract only the MCP layer
+  provides: that a valid call's serialized result matches the direct function call
+  exactly, that schema validation actually rejects a malformed argument type and a
+  missing required argument, and that a business-level "not found" result is a
+  successful MCP response (`is_error=False`) rather than being conflated with a
+  schema/protocol failure. This is deliberately narrow — it does not re-check every
+  analytical assertion already covered by `test_tool_behavior.py`.
+
+  Together, `test_tool_behavior.py` and `test_tool_boundary.py` give the five MCP tools
+  real behavioral coverage: their outputs are checked against the dataset rather than
+  only against their own SQL, and the MCP call boundary itself is exercised. This is
+  **not** comprehensive end-to-end coverage. Still untested: the `research://catalog`
+  resource, the `land_research_investigation` prompt, real stdio/transport behavior (the
+  boundary tests call `call_tool` in-process and never launch the server via
+  `scripts/run_mcp_*.sh` or talk over an actual stdio/SSE connection), and the
+  `top_vs_bottom_lift is None` branch in `evaluate_optionality_signal` (taken only when
+  the bottom decile's conversion rate is exactly zero, which the current dataset never
+  produces).
 
 ## Implementation-level limitations
 
@@ -538,7 +565,9 @@ These are limitations of the current *implementation*, distinct from the researc
 limitations covered in [`docs/LIMITATIONS.md`](LIMITATIONS.md):
 
 - No caching — every tool call recomputes `parcel_scores()` from the CSVs.
-- No behavioral test coverage — see above.
+- Behavioral test coverage exists for the five tools (direct calls plus a narrow
+  MCP-boundary subset) but not for the resource, the prompt, or the transport layer —
+  see above.
 - `LEFT JOIN infra i USING(parcel_id)` means a parcel with no rows in
   `parcel_infrastructure` would still appear in `parcel_scores()`, with `NULL` distance
   columns; the `EXP(-distance_km/k)` terms would then evaluate to `NULL`, which would

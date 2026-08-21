@@ -9,10 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.12.5"
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install test dependencies
-        run: pip install duckdb pandas pytest
-      - name: Data/runtime contract tests
-        run: pytest -q
+      - name: Install project + dev dependencies from the lockfile
+        run: uv sync --locked --extra dev
+      - name: Data/runtime/behavioral contract tests
+        run: uv run pytest -q
