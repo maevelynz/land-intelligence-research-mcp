@@ -1,0 +1,9 @@
+county_id,county_name,centroid_lat,centroid_lon,region,cash_rent_per_acre,farmland_cap_rate
+VA001,Loudoun County,39.0768,-77.6536,Northern Virginia,123.05,0.0219
+VA002,Frederick County,39.2037,-78.2632,Shenandoah,97.92,0.0268
+VA003,Clarke County,39.112,-77.9961,Shenandoah,129.39,0.0256
+VA004,Fauquier County,38.744,-77.8211,Northern Virginia,117.3,0.0339
+VA005,Prince William County,38.7023,-77.4789,Northern Virginia,72.06,0.0297
+VA006,Culpeper County,38.485,-77.956,Piedmont,138.17,0.0323
+VA007,Warren County,38.908,-78.21,Shenandoah,122.09,0.0267
+VA008,Rappahannock County,38.684,-78.16,Piedmont,123.95,0.0234

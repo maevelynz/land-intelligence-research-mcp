@@ -1,0 +1,32 @@
+table,column,type,key,description
+counties,county_id,string,PK,Stable synthetic county identifier
+counties,county_name,string,,County display name
+counties,region,string,,Research region grouping
+counties,cash_rent_per_acre,double,,Synthetic annual agricultural rent per acre
+counties,farmland_cap_rate,double,,Synthetic cap-rate assumption used for current-use proxy
+parcels,parcel_id,string,PK,Stable synthetic parcel identifier
+parcels,county_id,string,FK counties.county_id,County containing the parcel
+parcels,acres,double,,Parcel acreage
+parcels,current_land_use,string,,"Timber, pasture, cropland, or mixed agriculture"
+parcels,soil_quality,double,,Synthetic 0-100 agronomic quality score
+parcels,slope_pct,double,,Synthetic average slope percentage
+parcels,flood_risk,double,,Synthetic flood exposure from 0 to 1
+parcels,wetland_share,double,,Synthetic wetland share from 0 to 1
+parcels,solar_irradiance,double,,Synthetic solar resource proxy
+parcels,zoning_class,string,,"AG, RURAL, INDUSTRIAL, or MIXED"
+infrastructure,infra_id,string,PK,Stable synthetic infrastructure identifier
+infrastructure,county_id,string,FK counties.county_id,County containing the infrastructure asset
+infrastructure,infra_type,string,,"Transmission, substation, fiber, water, highway, or data center"
+parcel_infrastructure,parcel_id,string,FK parcels.parcel_id,Parcel side of bridge relationship
+parcel_infrastructure,nearest_infra_id,string,FK infrastructure.infra_id,Nearest asset of the specified type
+parcel_infrastructure,infra_type,string,,Infrastructure category at bridge-table grain
+parcel_infrastructure,distance_km,double,,Great-circle distance from parcel to nearest asset
+transactions,transaction_id,string,PK,Synthetic parcel-sale identifier
+transactions,parcel_id,string,FK parcels.parcel_id,Parcel sold
+transactions,sale_date,date,,Synthetic transaction date
+transactions,sale_price,double,,Synthetic total consideration
+transactions,price_per_acre,double,,Synthetic transaction price per acre
+development_outcomes,parcel_id,string,PK/FK parcels.parcel_id,Parcel used for synthetic evaluation label
+development_outcomes,observed_conversion_5yr,integer,,Synthetic five-year conversion label
+development_outcomes,synthetic_conversion_probability,double,,"Known DGP probability, retained for evaluation only"
+development_outcomes,conversion_type,string,,Synthetic future land-use conversion class

@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this research prototype, please cite the repository."
+title: "Land Intelligence Research MCP"
+type: software
+authors:
+  - family-names: "Ma"
+    given-names: "Evelyn"
+version: 0.1.0
+date-released: 2026-08-21
+license: MIT

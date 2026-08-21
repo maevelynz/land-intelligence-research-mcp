@@ -1,0 +1,30 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.pyo
+.DS_Store
+.mcp.json
+*.log
+.idea/
+.vscode/
+
+# Secrets / local environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local databases / generated artifacts
+*.duckdb
+*.db
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+
+# macOS
+.AppleDouble
+.LSOverride

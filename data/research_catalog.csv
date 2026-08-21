@@ -1,0 +1,6 @@
+research_capability,business_definition,grain,source_tables,limitation
+county_screening,County-level summary of average parcel optionality and high-signal parcel concentration,county,parcels;counties;parcel_infrastructure,Synthetic screening only; not an investment recommendation
+parcel_ranking,"Transparent screening rank using infrastructure proximity, acreage, physical constraints, and zoning",parcel,parcels;parcel_infrastructure;infrastructure,Not an appraisal or development probability
+parcel_explanation,Explain the features contributing to one parcel's screening position,parcel,parcels;parcel_infrastructure;counties,"Feature contribution is descriptive, not causal"
+synthetic_backtest,Compare synthetic five-year conversion rates across optionality-score deciles,score_decile,parcels;parcel_infrastructure;development_outcomes,Validates only the synthetic data-generating process
+current_use_proxy,Annual cash rent divided by farmland cap rate,county/parcel,counties;parcels,"Simplified capitalization proxy, not appraised market value"
